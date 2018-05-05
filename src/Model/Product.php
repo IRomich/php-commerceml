@@ -55,6 +55,11 @@ class Product extends Model
     public $properties = [];
 
     /**
+     * @var string $status 
+     */
+    public $status;
+
+    /**
      * Class constructor.
      *
      * @param string [$importXml]
@@ -91,6 +96,7 @@ class Product extends Model
 
         $this->sku  = trim($xml->Артикул);
         $this->unit = trim($xml->БазоваяЕдиница);
+        $this->status = $xml->attributes()["Статус"];
 
         if ($xml->Группы) {
             foreach ($xml->Группы->Ид as $categoryId) {
