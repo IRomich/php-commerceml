@@ -60,6 +60,11 @@ class Product extends Model
     public $status;
 
     /**
+     * @var string $image
+     */
+    public $image;
+
+    /**
      * Class constructor.
      *
      * @param string [$importXml]
@@ -97,6 +102,19 @@ class Product extends Model
         $this->sku  = trim($xml->Артикул);
         $this->unit = trim($xml->БазоваяЕдиница);
         $this->status = $xml->attributes()["Статус"];
+
+        if (isset($xml->Картинка)){
+            $this->image = [];
+            foreach ($xml->Картинка as $image) {
+                array_push($this->image, trim($xml->Картинка));
+            }
+        } else{
+            if (array_key_exists("ОписаниеФайла", $xml->ЗначенияРеквизитов->ЗначениеРеквизита)){
+                $this->image = explode("#", $xml->ЗначенияРеквизитов->ЗначениеРеквизита["ОписаниеФайла"])[0];
+            } else{
+                $this->image = NULL;
+            }
+        }
 
         if ($xml->Группы) {
             foreach ($xml->Группы->Ид as $categoryId) {
