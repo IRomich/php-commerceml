@@ -86,18 +86,22 @@ class CommerceML
         if ($offersXml) {
             if ($offersXml->ПакетПредложений->Предложения) {
                 foreach ($offersXml->ПакетПредложений->Предложения->Предложение as $offer) {
-                    $productId                               = (string)$offer->Ид;
-                    $buffer['products'][$productId]['offer'] = $offer;
+                    $productId = (string)$offer->Ид;
+                    if (!is_array($buffer['products'][$productId]['offer'])){
+                        $buffer['products'][$productId]['offer'] = [];
+                    }
+                    array_push($buffer['products'][$productId]['offer'], $offer);
                 }
             }
         }
 
         foreach ($buffer['products'] as $item) {
             $import = isset($item['import']) ? $item['import'] : null;
-            $offer  = isset($item['offer']) ? $item['offer'] : null;
-
-            $product = new Product($import, $offer);
-            $this->getCollection('product')->add($product);
+            foreach ($item['offer'] as $offer) {
+                $product = new Product($import, $offer);
+                $this->getCollection('product')->add($product);
+            }
+            //$offer  = isset($item['offer']) ? $item['offer'] : null;
         }
     }
 
