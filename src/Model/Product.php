@@ -65,6 +65,11 @@ class Product extends Model
     public $image;
 
     /**
+     * @var array $offers 
+     */
+    public $offers;
+
+    /**
      * Class constructor.
      *
      * @param string [$importXml]
@@ -75,13 +80,14 @@ class Product extends Model
         $this->name        = '';
         $this->quantity    = 0;
         $this->description = '';
-
         if (!is_null($importXml)) {
             $this->loadImport($importXml);
         }
-
+        $this->offers = [];
         if (!is_null($offersXml)) {
-            $this->loadOffers($offersXml);
+            foreach ($offersXml as $offer) {
+                $this->loadOffers($offer);
+            }
         }
     }
 
@@ -151,21 +157,29 @@ class Product extends Model
      */
     public function loadOffers($xml)
     {
+        $offer = [];
         if ($xml->Количество) {
-            $this->quantity = (int)$xml->Количество;
+            $offer["quantity"] = (int)$xml->Количество;
         }
-
+        $offer["name"] = (string)$xml->Наименование;
+        $offer["id"] = "";
+        //$offer["status"] = $xml->attributes()["Статус"];
+        if (strpos($xml->Ид, "#") !== false){
+            $offer["id"] = (string)explode("#", $xml->Ид)[1];
+        } else{
+            $offer["id"] = (string)$xml->Ид;
+        }
         if ($xml->Цены) {
             foreach ($xml->Цены->Цена as $price) {
                 $id = (string)$price->ИдТипаЦены;
-
-                $this->price[$id] = [
+                $offer["price"][$id] = [
                     'type'     => $id,
                     'currency' => (string)$price->Валюта,
                     'value'    => (float)$price->ЦенаЗаЕдиницу
                 ];
             }
         }
+        array_push($this->offers, $offer);
     }
 
     /**

@@ -77,7 +77,7 @@ class CommerceML
         if ($importXml) {
             if ($importXml->Каталог->Товары) {
                 foreach ($importXml->Каталог->Товары->Товар as $product) {
-                    $productId                                = (string)$product->Ид;
+                    $productId = (string)$product->Ид;
                     $buffer['products'][$productId]['import'] = $product;
                 }
             }
@@ -86,22 +86,22 @@ class CommerceML
         if ($offersXml) {
             if ($offersXml->ПакетПредложений->Предложения) {
                 foreach ($offersXml->ПакетПредложений->Предложения->Предложение as $offer) {
-                    $productId = (string)$offer->Ид;
-                    if (!is_array($buffer['products'][$productId]['offer'])){
+                    $productId = explode("#", (string)$offer->Ид)[0];
+                    if (!array_key_exists($productId, $buffer['products'])){
+                        $buffer['products'][$productId] = ['offer'];
+                    }
+                    if (!array_key_exists('offer', $buffer['products'][$productId])){
                         $buffer['products'][$productId]['offer'] = [];
                     }
                     array_push($buffer['products'][$productId]['offer'], $offer);
                 }
             }
         }
-
         foreach ($buffer['products'] as $item) {
             $import = isset($item['import']) ? $item['import'] : null;
-            foreach ($item['offer'] as $offer) {
-                $product = new Product($import, $offer);
-                $this->getCollection('product')->add($product);
-            }
-            //$offer  = isset($item['offer']) ? $item['offer'] : null;
+            $offer  = isset($item['offer']) ? $item['offer'] : null;
+            $product = new Product($import, $offer);
+            $this->getCollection('product')->add($product);
         }
     }
 
