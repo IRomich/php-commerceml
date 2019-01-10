@@ -70,6 +70,11 @@ class Product extends Model
     public $offers;
 
     /**
+     * @var int $basicUnitCode 
+     */
+    public $basicUnitCode;
+    
+    /**
      * Class constructor.
      *
      * @param string [$importXml]
@@ -108,6 +113,13 @@ class Product extends Model
         $this->sku  = trim($xml->Артикул);
         $this->unit = trim($xml->БазоваяЕдиница);
         $this->status = $xml->attributes()["Статус"];
+
+        if (property_exists($xml->БазоваяЕдиница->attributes(), "Код")){
+            $code = $xml->БазоваяЕдиница->attributes()->Код;
+            $this->basicUnitCode = trim($code[0]);
+        } else{
+            $this->basicUnitCode = 0;
+        }
 
         if (isset($xml->Картинка)){
             $this->image = [];
@@ -169,6 +181,20 @@ class Product extends Model
         } else{
             $offer["id"] = (string)$xml->Ид;
         }
+
+        /*  Получение характеристик товара  */
+        $offer["characteristics"] = [];
+        if ($xml->ХарактеристикиТовара){
+            foreach ($xml->ХарактеристикиТовара->ХарактеристикаТовара as $characteristic) {
+                $id = (string)$characteristic->Ид;
+                $offer["characteristics"][$id] = [
+                    "type"  => $id,
+                    "name"  => (string)$characteristic->Наименование,
+                    "value" => (string)$characteristic->Значение
+                ];
+            }
+        }
+
         if ($xml->Цены) {
             foreach ($xml->Цены->Цена as $price) {
                 $id = (string)$price->ИдТипаЦены;
